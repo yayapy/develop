@@ -809,7 +809,7 @@ class GCPOperations:
                     df_source[col["name"]] = df_source[col["name"]].astype('Int64')
                 elif col["type"] == "STRING":
                     df_source[col["name"]] = df_source[col["name"]].apply(lambda x: x.encode('utf8').decode())
-                    df_source[col["name"]] = df_source[col["name"]].apply(lambda x: x.strip())
+                        df_source[col["name"]] = df_source[col["name"]].apply(lambda x: x.strip())
                 elif col["type"] == "TIMESTAMP":
                     df_source[col["name"]] = df_source[col["name"]].apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
             except Exception as e:
