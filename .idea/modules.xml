@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/develope.iml" filepath="$PROJECT_DIR$/.idea/develope.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pysandbox/.idea/pysandbox.iml" filepath="$PROJECT_DIR$/../pysandbox/.idea/pysandbox.iml" />
     </modules>
   </component>
 </project>
