@@ -213,7 +213,7 @@ def run_df():
     option = PipelineOptions(flag=[], type_check_additional='all')
     with beam.Pipeline(options=option) as pipeline:
         df = pipeline | 'Read_csv' >> beam.dataframe.io.read_csv(input_patterns)
-
+        print(df.head)
         (
             convert.to_pcollection(df)
             | "To Dict" >> beam.Map(lambda x: dict(x._asdict()))
