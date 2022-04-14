@@ -221,6 +221,42 @@ def run_df():
         )
 
 
+def run_gcp(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', dest='input', default='./test_src.csv')
+    parser.add_argument('--output', dest='output', default='./test_tgt.txt')
+    parser.add_argument('--output2', dest='output2', default='./test_tgt2.txt')
+    known_args, pipeline_args = parser.parse_known_args(argv)
+    pipeline_args.extend([
+        # CHANGE 2/6: (OPTIONAL) Change this to DataflowRunner to
+        # run your pipeline on the Google Cloud Dataflow Service.
+        '--runner=DirectRunner',
+        # CHANGE 3/6: (OPTIONAL) Your project ID is required in order to
+        # run your pipeline on the Google Cloud Dataflow Service.
+        # '--project=SET_YOUR_PROJECT_ID_HERE',
+        # CHANGE 4/6: (OPTIONAL) The Google Cloud region (e.g. us-central1)
+        # is required in order to run your pipeline on the Google Cloud
+        # Dataflow Service.
+        # '--region=SET_REGION_HERE',
+        # CHANGE 5/6: Your Google Cloud Storage path is required for staging local
+        # files.
+        # '--staging_location=gs://YOUR_BUCKET_NAME/AND_STAGING_DIRECTORY',
+        # CHANGE 6/6: Your Google Cloud Storage path is required for temporary
+        # files.
+        # '--temp_location=gs://YOUR_BUCKET_NAME/AND_TEMP_DIRECTORY',
+        '--job_name=mybeam',
+    ])
+    # input_patterns = ['./test_src.csv']
+    pipeline_options = PipelineOptions(pipeline_args)
+    with beam.Pipeline(options=pipeline_options) as pipeline:
+        lines = (pipeline |
+                 'Read GCS File' >> beam.io.ReadFromText('gs://rguo_dev/native-land_language.csv') |
+                 "Print" >> beam.Map(print) |
+                 "Write" >> beam.io.WriteToText('gs://rguo_dev/native-land_language_write.txt'))
+
+
+
+
 if __name__ == '__main__':
     """
     use logger instance to record log: info, error, warning, critical and debug
@@ -239,7 +275,8 @@ if __name__ == '__main__':
     # run2()
     # run3()
     # run_count()
-    run_df()
+    # run_df()
     # end
+    run_gcp()
     # logger.info(f"End of the job <{sys.argv[0]}>")
     # LoggingToSlack.slack_logging(slack_token, slack_channel, jobname=sys.argv[0])
