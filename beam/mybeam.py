@@ -221,6 +221,34 @@ def run_df():
         )
 
 
+class add_tax(beam.DoFn):
+    def __init__(self, rate:float=1.13):
+        self.rate = rate
+
+    def process(self, element, *args, **kwargs):
+        id, name, cost = element.split(',')
+        yield {'id': int(id),
+               'name': str(name),
+               'cost': float(cost),
+               'total': float(cost) * self.rate}
+
+
+class groupkey_cost(beam.DoFn):
+    def __init__(self):
+        pass
+
+    def process(self, element):
+        yield (element['id'], element['cost'])
+
+
+class groupkey_total(beam.DoFn):
+    def __init__(self):
+        pass
+
+    def process(self, element):
+        yield (element['id'], element['total'])
+
+
 def run_gcp(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', dest='input', default='./test_src.csv')
@@ -249,12 +277,22 @@ def run_gcp(argv=None):
     # input_patterns = ['./test_src.csv']
     pipeline_options = PipelineOptions(pipeline_args)
     with beam.Pipeline(options=pipeline_options) as pipeline:
-        lines = (pipeline |
-                 'Read GCS File' >> beam.io.ReadFromText('gs://rguo_dev/native-land_language.csv') |
-                 "Print" >> beam.Map(print) |
-                 "Write" >> beam.io.WriteToText('gs://rguo_dev/native-land_language_write.txt'))
+        raw = pipeline | 'Read GCS File' >> beam.io.ReadFromText('test_src.csv', skip_header_lines=True)
+        # raw | "Debug 1" >> beam.Map(print)
+        tax = raw | "Calculate Tax" >> beam.ParDo(add_tax())
+        id_cost = tax | "Get grouped cost" >> beam.ParDo(groupkey_cost()) | \
+                  "Group_cost" >> beam.GroupByKey() | \
+                  "combine cost mean" >> beam.CombineValues(beam.combiners.MeanCombineFn()) | \
+                  "Debug 2" >> beam.Map(print)
+        id_total = tax | "Get grouped total" >> beam.ParDo(groupkey_total()) | \
+                   "Group_total" >> beam.GroupByKey() | \
+                   "combine total mean" >> beam.CombineValues(beam.combiners.MeanCombineFn()) |\
+                   "Debug 3" >> beam.Map(print)
 
+        # results = ({'cost_mean': id_cost, 'total_mean': id_total} | beam.CoGroupByKey()) | "CoGroup" >> beam.Map(print)
 
+        # raw | "Debug1" >> beam.io.WriteToText('test_tgt.csv')
+        # "Write" >> beam.io.WriteToText('test_src_out.txt'))
 
 
 if __name__ == '__main__':
@@ -280,3 +318,5 @@ if __name__ == '__main__':
     run_gcp()
     # logger.info(f"End of the job <{sys.argv[0]}>")
     # LoggingToSlack.slack_logging(slack_token, slack_channel, jobname=sys.argv[0])
+
+

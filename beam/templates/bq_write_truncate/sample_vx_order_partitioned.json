@@ -1,0 +1,26 @@
+[
+  {
+    "name": "brand",
+    "type": "STRING"
+  },
+  {
+    "name": "customer_id",
+    "type": "INTEGER"
+  },
+  {
+    "name": "order_id",
+    "type": "INTEGER"
+  },
+  {
+    "name": "order_date",
+    "type": "DATE"
+  },
+  {
+    "name": "channel_id",
+    "type": "INTEGER"
+  },
+  {
+    "name": "ORDER_SUBTOTAL_BEFORE_DDDCT",
+    "type": "FLOAT"
+  }
+]

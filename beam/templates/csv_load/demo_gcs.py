@@ -63,6 +63,17 @@ class add_prefix(beam.DoFn):
         # print(element)
         yield "Demo >> " + element
 
+class add_tax(beam.DoFn):
+    def process(self, element):
+        brand,customer_id,order_id,order_date,channel_id,ORDER_SUBTOTAL_BEFORE_DDDCT = element.split(",")
+        return [{
+                "brand": str(brand),
+                "customer_id": int(customer_id),
+                "order_id": int(order_id),
+                "order_date": str(order_date),
+                "ORDER_SUBTOTAL_BEFORE_DDDCT": float(ORDER_SUBTOTAL_BEFORE_DDDCT),
+                "ORDER_SUBTOTAL_AFTER_TAX": float(ORDER_SUBTOTAL_BEFORE_DDDCT) * 1.13
+                }]
 
 def run():
     pipeline_options = PipelineOptions()
@@ -72,14 +83,29 @@ def run():
     pipeline_options.view_as(SetupOptions).save_main_session = True
     pipeline_options.view_as(WorkerOptions).num_workers = 3
     pipeline_options.view_as(WorkerOptions).max_num_workers = 5
+    bar = 20
+    columns = ['brand', 'customer_id', 'order_id', 'order_date', 'channel_id', 'ORDER_SUBTOTAL_BEFORE_DDDCT']
     with beam.Pipeline(options=pipeline_options) as pipeline:
-        lines = (pipeline |
-                 'Read GCS File' >> beam.io.ReadFromText('../../test_src.csv') |
-                 # "Print before" >> beam.Map(print) |
-                 "Add prefix" >> beam.ParDo(add_prefix()) |
-                 # "Print after" >> beam.Map(print) |
-                 "Write" >> beam.io.WriteToText('./test_src_write.txt')
+        lines = (pipeline | 'Read GCS File' >> beam.io.ReadFromText('gs://rguo_dev/sample_orders',
+                                                                    skip_header_lines=True))
+
+        Parse = lines | "Parse" >> beam.ParDo(ParseCsv(columns)) | "Parse output" >> beam.io.WriteToText('gs://rguo_dev/sample_orders_parse.csv')
+        taxed = (lines
+                 | "Add prefix" >> beam.ParDo(add_tax())
+                 # | "Write" >> beam.io.WriteToText('gs://rguo_dev/test_src_output.csv')
+                 | "Tax output" >> beam.io.WriteToText('gs://rguo_dev/sample_orders_tax.csv')
                  )
+
+        # over20 = (taxed | "filter cost over 20" >> beam.ParDo(filter_by_total_over(bar)) |
+        #           # "Print over20" >> beam.Map(print) |
+        #           "Output over" >> beam.io.WriteToText('gs://rguo_dev/test_src_output_over.csv'))
+        #
+        # below20 = (taxed | "filter cost below 20" >> beam.ParDo(filter_by_total_below(bar)) |
+        #            # "Print over20" >> beam.Map(print) |
+        #            "Output below" >> beam.io.WriteToText('gs://rguo_dev/test_src_output_below.csv'))
+
+    # runner = DataflowRunner()
+    # runner.run_pipeline(pipeline, options=options)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ Description:
 # root_path = os.path.abspath("..")
 # sys.path.append('/'.join([root_path, 'bin']))
 # from CommonModules import ConnectionBuilder as cnb
+import time
 
 
 def func():
@@ -76,9 +77,14 @@ if __name__ == '__main__':
     use logger instance to record log: info, error, warning, critical and debug
     send error, warning and critical messsage to slack at then end of the job 
     """
-    df = process_data()
-    print(df.head())
-    df.to_csv('biopics_output.csv', index=False)
+    count = 0
+    while count <= 10:
+        print(f"\rmessage {count}", end='')
+        time.sleep(2)
+        count += 1
+    # df = process_data()
+    # print(df.head())
+    # df.to_csv('biopics_output.csv', index=False)
     # from hdfs3 import HDFileSystem
     # hdfs = HDFileSystem(host='192.168.2.222', port=8020)
     # hdfs.ls('/')
