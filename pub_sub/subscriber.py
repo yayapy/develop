@@ -1,3 +1,4 @@
+import time
 from concurrent.futures import TimeoutError
 from google.cloud import pubsub_v1
 from google.oauth2 import service_account
@@ -21,14 +22,14 @@ msgs = []
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
     # print(f"Received {message}.")
 
-    # print(f"Received {message.data!r}.")
+    print(f"Received {message.data!r}.")
     # if message.attributes:
     #     # print("Attributes:")
     #     for key in message.attributes:
     #         value = message.attributes.get(key)
     #         print(f"{key}: {value}")
 
-    msgs.append(message)
+    # msgs.append(message)
     message.ack()
 
 
@@ -68,12 +69,16 @@ with subscriber:
         # When `timeout` is not set, result() will block indefinitely,
         # unless an exception is encountered first.
         streaming_pull_future.result(timeout=timeout)
+        # streaming_pull_future.result()
+
     except TimeoutError:
         streaming_pull_future.cancel()  # Trigger the shutdown.
         streaming_pull_future.result()  # Block until the shutdown is complete.
 
-print(f"{len(msgs)} messages")
-for m in msgs:
-    print(m.data)
-    print(m.attributes)
-    print(m.ordering_key)
+print('pause......')
+time.sleep(60)
+print(f"Done messages")
+# for m in msgs:
+#     print(m.data)
+#     print(m.attributes)
+#     print(m.ordering_key)

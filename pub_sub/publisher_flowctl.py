@@ -30,7 +30,7 @@ publish_futures = []
 # Resolve the publish future in a separate thread.
 def callback(publish_future: pubsub_v1.publisher.futures.Future) -> None:
     message_id = publish_future.result()
-    print(message_id)
+    # print(message_id)
 
 
 # Publish 1000 messages in quick succession may be constrained by
